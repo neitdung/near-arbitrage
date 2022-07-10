@@ -1,30 +1,8 @@
-import Stack from "@mui/material/Stack";
-import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
-import React from "react";
-import backgroundImage from "src/public/static/img/bg_4.png";
-import Box from "@mui/material/Box";
+import React from 'react';
+import { Center } from '@chakra-ui/react';
 
-export default function NotLoggedIn({wallet}) {
+export default function NotLoggedIn() {
     return (
-        <Box
-            sx={{
-                bgcolor: 'background.paper',
-                pt: 8,
-                pb: 6,
-                backgroundImage:`url(${backgroundImage.src})`
-            }}
-        >
-            <Container>
-                <Stack
-                    sx={{ pt: 4, color: "white" }}
-                    direction="row"
-                    spacing={2}
-                    justifyContent="center"
-                >
-                    <Button variant="contained" onClick={() => wallet.signIn()}>Connect wallet to continue</Button>
-                </Stack>
-            </Container>
-        </Box>
+        <Center>You must login to continue</Center>
     )
 }

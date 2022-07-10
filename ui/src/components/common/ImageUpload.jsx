@@ -12,9 +12,9 @@ export default function ImageUpload({setMedia}) {
         getRootProps,
         getInputProps
     } = useDropzone({
-        accept: 'image/jpeg, image/png',
+        accept: 'image/svg+xml',
         maxFiles: 1,
-        maxSize: 10000000,
+        maxSize: 2050,
         onDrop
     });
 

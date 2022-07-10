@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Head from 'next/head';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import { CacheProvider } from '@emotion/react';
-import theme from '../theme';
 import createEmotionCache from '../createEmotionCache';
-import ResponsiveAppBar from "src/components/layout/ResponsiveAppBar";
-import "../public/static/css/style.css";
+import AppBar from "src/components/layout/AppBar";
 import favicon from "../public/static/favicon.ico";
 const clientSideEmotionCache = createEmotionCache();
 import { AppProvider } from '../state/app';
+import { ChakraProvider } from '@chakra-ui/react';
+
 export default function MyApp(props) {
+    const [isFirstLoading, setIsFirstLoading] = useState(true);
+    const [windowObj, setWindowObj] = useState(null);
+    useEffect(() => {
+        if (isFirstLoading) {
+            setIsFirstLoading(false);
+            setWindowObj(window);
+        }
+
+    }, [isFirstLoading, windowObj]);
     const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
     return (
         <CacheProvider value={emotionCache}>
@@ -21,15 +28,15 @@ export default function MyApp(props) {
                 <meta name={"title"} title={"NEAR Arbitrage"} />
                 <title>NEAR Arbitrage</title>
             </Head>
-            <ThemeProvider theme={theme}>
-                <CssBaseline />
                 <main>
+                    {windowObj &&
                     <AppProvider>
-                        <ResponsiveAppBar />
-                        <Component {...pageProps} />
-                    </AppProvider>
+                        <ChakraProvider>
+                            <AppBar />
+                            <Component {...pageProps} />
+                        </ChakraProvider>
+                    </AppProvider>}
                 </main>
-            </ThemeProvider>
         </CacheProvider>
     );
 }

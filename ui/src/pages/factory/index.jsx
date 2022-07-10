@@ -1,17 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
-import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
 import { appStore, onAppMount } from "src/state/app";
 import { loadFungibleTokens, loadNumberTokens } from "src/state/views";
-import { Add, List } from "@mui/icons-material";
 import NextLink from 'next/link';
 import TableFTs from "src/components/common/TableFTs";
+import { Button, flattenTokens, HStack, VStack } from "@chakra-ui/react";
+import { factoryId } from "src/state/near";
 
 export default function Index() {
     const [isFirstLoading, setIsFirstLoading] = useState(true);
     const { state, dispatch } = useContext(appStore);
     const [data, setData] = useState([]);
-    const { contractAccount } = state;
+    const { contractAccount, account } = state;
     const onMount = () => {
         dispatch(onAppMount());
     };
@@ -24,28 +23,66 @@ export default function Index() {
 
     }, [isFirstLoading]);
     useEffect(() => {
-        if (contractAccount) {
+        if (account && contractAccount) {
             loadNumberTokens(contractAccount)
                 .then(tokensLength => loadFungibleTokens(contractAccount, 0, tokensLength))
-                .then(newData => {
-                    setData(newData.map(item => item[1]));
+                .then(fTokens => [fTokens.map(item => item[0] + "." + factoryId), fTokens.map(item => item[1].can_faucet)])
+                .then(([tokens, listFaucet]) => {
+                    let promises = [];
+                    let newData = [];
+                    tokens.forEach(item => {
+                        const tokenData = contractAccount.viewFunction(item, 'ft_metadata');
+                        const tokenSupply = contractAccount.viewFunction(item, 'ft_total_supply');
+                        const tokenBalanceOf = contractAccount.viewFunction(item, 'ft_balance_of', { account_id: account.accountId });
+                        promises.push(tokenData);
+                        promises.push(tokenSupply);
+                        promises.push(tokenBalanceOf);
+                    });
+                    Promise.all(promises).then(values => {
+                        for (let i = 0; i < values.length; i = i + 3) {
+                            let newItem = { metadata: values[i], total_supply: values[i + 1], balance_of: values[i + 2], can_faucet: listFaucet[i/3] };
+                            newData.push(newItem);
+                        }
+                    }).then(() => setData(newData));
+                });
+        } else if (contractAccount) {
+            loadNumberTokens(contractAccount)
+                .then(tokensLength => loadFungibleTokens(contractAccount, 0, tokensLength))
+                .then(fTokens => (fTokens.map(item => item[0] + "." + factoryId), fTokens.map(item => item[1].can_faucet)))
+                .then((tokens, listFaucet) => {
+                    let promises = [];
+                    let newData = [];
+                    tokens.forEach(item => {
+                        const tokenData = contractAccount.viewFunction(item, 'ft_metadata');
+                        const tokenSupply = contractAccount.viewFunction(item, 'ft_total_supply');
+                        promises.push(tokenData);
+                        promises.push(tokenSupply);
+                    });
+                    Promise.all(promises).then(values => {
+                        for (let i = 0; i < values.length; i = i + 2) {
+                            let newItem = { metadata: values[i], total_supply: values[i + 1], balance_of: 0, can_faucet: listFaucet[i/2] };
+                            newData.push(newItem);
+                        }
+                    }).then(() => setData(newData));
                 });
         }
     }, [contractAccount]);
 
     return (
-        <Container className={"picasart-dashboard"} sx={{ py: 8, bgcolor: 'background.paper', }} maxWidth="xl">
-            <NextLink href={"/factory/my-tokens"} as={"/factory"}>
-                <Button variant="outlined" sx={{ my: 2 }} startIcon={<List />}>
-                    View my tokens
-                </Button>
-            </NextLink>
-            <NextLink href={"/factory/create"} as={"/factory/create"}>
-                <Button variant="contained" sx={{ my: 2, ml: 1 }} startIcon={<Add />}>
-                    Create new token
-                </Button>
-            </NextLink>
-            <TableFTs data={data} />
-        </Container>
+        <VStack gap={20}>
+            <HStack gap={10}>
+                <NextLink href={"/factory/my-tokens"} as={"/factory"}>
+                    <Button>
+                        View my tokens
+                    </Button>
+                </NextLink>
+                <NextLink href={"/factory/create"} as={"/factory/create"}>
+                    <Button >
+                        Create new token
+                    </Button>
+                </NextLink>
+            </HStack>
+            <TableFTs data={data} account={account}/>
+        </VStack>
     )
 }

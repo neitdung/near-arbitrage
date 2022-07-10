@@ -1,22 +1,7 @@
-import React from 'react';
-import getConfig from '../config';
 import * as nearAPI from 'near-api-js';
-import { getWallet } from '../utils/near-utils';
-import {Select, MenuItem, FormControl, TextField} from "@mui/material";
 
-export const {
-  GAS,
-  explorerUrl,
-  networkId,
-  nodeUrl,
-  walletUrl,
-  nameSuffix,
-  contractName: contractId,
-} = getConfig();
-
-export const marketId = "market." + contractId;
-export const farmingId = "farming." + contractId;
-export const factoryId = "factory." + contractId;
+export const arbitrageId = "picasarts.testnet";
+export const factoryId = "dev-1656188046462-83531633920883";
 
 export const {
 	utils: {
@@ -26,18 +11,34 @@ export const {
 	}
 } = nearAPI;
 
-export const initNear = () => async ({ update, getState, dispatch }) => {
-	const { near, wallet, contractAccount } = await getWallet();
+const getWallet = async() => {
+	const keyStores = new nearAPI.keyStores.BrowserLocalStorageKeyStore();
+	const near = await nearAPI.connect({
+		networkId: "testnet",
+		deps: {
+			keyStore: keyStores
+		},
+		nodeUrl: "https://rpc.testnet.near.org",
+		walletUrl: "https://wallet.testnet.near.org",
+		helperUrl: "https://helper.testnet.near.org",
+		explorerUrl: "https://explorer.testnet.near.org",
+		});
+	const wallet = new nearAPI.WalletConnection(near);
+		
+	const contractAccount = new nearAPI.Account(near.connection, arbitrageId);
+	return { near, wallet, contractAccount };
+}
 
+export const initNear = () => async ({ update }) => {
+	const { near, wallet, contractAccount } = await getWallet();
 	wallet.signIn = () => {
-		wallet.requestSignIn(contractId, 'Blah Blah');
+		wallet.requestSignIn(arbitrageId, 'Near arbitrage');
 	};
 	const signOut = wallet.signOut;
 	wallet.signOut = () => {
 		signOut.call(wallet);
 		update('wallet.signedIn', false);
 		update('', { account: null });
-		update('app.tab', 1);
 	};
 
 	wallet.signedIn = wallet.isSignedIn();

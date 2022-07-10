@@ -1,6 +1,6 @@
-import { State } from '../utils/state';
+import { State } from './provider';
 
-import { initNear } from './near';
+import { arbitrageId, initNear } from './near';
 
 const initialState = {
 	app: {
@@ -8,22 +8,39 @@ const initialState = {
 	},
 	near: {
 		initialized: false,
+	},
+	dexs: {
+		list: [],
+		mounted: false
+	},
+	tokens: {
+		list: [],
+		mounted: false
 	}
 };
-let snackTimeout;
 
 export const { appStore, AppProvider } = State(initialState, 'app');
 
-export const onAppMount = () => async ({ update, getState, dispatch }) => {
-	let nearToUsdReq = await fetch("https://api.diadata.org/v1/foreignQuotation/CoinMarketCap/NEAR");
-	let nearToUsdRes = await nearToUsdReq.json();
-	update('app', { mounted: true, nearToUsd: nearToUsdRes.Price });
+export const onAppMount = () => async ({ dispatch }) => {
 	dispatch(initNear());
 };
 
-export const snackAttack = (msg) => async ({ update, getState, dispatch }) => {
-	console.log('Snacking on:', msg);
-	update('app.snack', msg);
-	if (snackTimeout) clearTimeout(snackTimeout);
-	snackTimeout = setTimeout(() => update('app.snack', null), 3000);
-};
+export const mountDexs = () => async ({ update, getState }) => {
+	let timer = 0;
+	let snackTimer = setInterval(async () => {
+		const { app: { mounted }, contractAccount } = await getState();
+		timer++;
+		if(timer > 8) clearInterval(snackTimer);
+		if (mounted) {
+			contractAccount
+				.viewFunction(arbitrageId, "get_dexs", {
+					from_index: 0,
+					limit: 100
+				}).then(res => {
+					update('dexs', { mounted: true, list: res })
+				});
+			clearInterval(snackTimer);
+		}
+	}, 2000)
+
+}

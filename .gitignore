@@ -1,0 +1,8 @@
+contracts/factory/target/*
+contracts/arbitrage/target/*
+ui/node_modules/*
+ui/.next/*
+contracts/arbitrage/Cargo.lock
+contracts/factory/Cargo.lock
+contracts/arbitrage/res/*
+contracts/factory/res/*

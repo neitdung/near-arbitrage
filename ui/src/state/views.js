@@ -1,4 +1,36 @@
-import { factoryId } from "../state/near";
+import { factoryId, arbitrageId } from "../state/near";
+
+export const getDexs = async (
+    contractAccount,
+    from_index,
+    limit
+) => {
+    let data = await contractAccount
+        .viewFunction(arbitrageId, "get_dexs", {
+            from_index: from_index,
+            limit: limit,
+        })
+        .catch((e) => {
+            console.log(e);
+        });
+    return data;
+};
+
+export const getPools = async (
+    contractAccount,
+    from_index,
+    limit
+) => {
+    let data = await contractAccount
+        .viewFunction(arbitrageId, "get_dexs", {
+            from_index: from_index,
+            limit: limit,
+        })
+        .catch((e) => {
+            console.log(e);
+        });
+    return data;
+};
 
 export const loadFungibleTokens = async (
     contractAccount,

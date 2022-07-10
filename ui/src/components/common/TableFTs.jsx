@@ -1,41 +1,58 @@
 import React from "react";
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
+import {
+    Table,
+    Thead,
+    Tr,
+    Th,
+    Td,
+    TableCaption,
+    TableContainer,
+    Tbody,
+    Image,
+    Button
+} from '@chakra-ui/react';
+import { faucetFT } from "src/state/actions";
+import { factoryId } from "src/state/near";
+export default function TableFTs({ data, account }) {
+    const faucet = (seed) => {
+        if(account) {
+            faucetFT(account, seed);
+        } else {
+            alert("Please login first");
+        }
+    }
 
-export default function TableFTs({ data }) {
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Icon</TableCell>
-                        <TableCell align="right">Symbol</TableCell>
-                        <TableCell align="right">Name</TableCell>
-                        <TableCell align="right">Owner</TableCell>
-                        <TableCell align="right">Total supply</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
+        <TableContainer border={'1px solid'} w={'full'} maxW={'6xl'}>
+            <Table variant='striped' colorScheme='teal'>
+                <TableCaption>Fungible tokens by factory</TableCaption>
+                <Thead>
+                    <Tr>
+                        <Th>Icon</Th>
+                        <Th>Symbol</Th>
+                        <Th>Name</Th>
+                        <Th>Balance</Th>
+                        <Th isNumeric>Total supply</Th>
+                        <Th>Faucet</Th>
+                    </Tr>
+                </Thead>
+                <Tbody>
                     {data && data.map((row, index) => (
-                        <TableRow
+                        <Tr
                             key={row.metadata.symbol}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
-                            <TableCell component="th" scope="row">
-                                {row.metadata.icon ? <img height={50} src={row.metadata.icon} /> : <img src={`https://picsum.photos/50/?random=${index}`} />}
-                            </TableCell>
-                            <TableCell align="right">{row.metadata.symbol}</TableCell>
-                            <TableCell align="right">{row.metadata.name}</TableCell>
-                            <TableCell align="right">{row.owner_id}</TableCell>
-                            <TableCell align="right">{row.total_supply}</TableCell>
-                        </TableRow>
+                            <Td component="th" scope="row">
+                                {row.metadata.icon ? <Image height={50} src={row.metadata.icon} /> : <img src={`https://picsum.photos/50/?random=${index}`} />}
+                            </Td>
+                            <Td>{row.metadata.symbol}</Td>
+                            <Td>{row.metadata.name}</Td>
+                            <Td>{row.balance_of}</Td>
+                            <Td isNumeric>{row.total_supply}</Td>
+                            <Td isNumeric>{row.can_faucet && <Button onClick={() => faucet(row.metadata.symbol.toLowerCase()+'.'+factoryId)}>Faucet</Button>}</Td>
+                        </Tr>
                     ))}
-                </TableBody>
+                </Tbody>
             </Table>
         </TableContainer>
     );
