@@ -93,3 +93,21 @@ export const ftStorage = async (contractAccount, seed_id, account_id) => {
         });
     return data ? data.total : 0;
 };
+
+
+export const loadFTMeta = async (contractAccount, tokens) => {
+    let promises = [];
+    tokens.forEach(item => {
+        promises.push(contractAccount.viewFunction(item, 'ft_metadata'));
+    })
+    let result = await Promise.all(promises);
+    return result;
+};
+
+export const loadBalance = async (account, tokenId) => {
+    let balance = await account.viewFunction(tokenId, 'ft_balance_of', {account_id: account.accountId});
+    
+    return balance;
+};
+
+

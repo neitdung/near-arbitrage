@@ -3,7 +3,7 @@ use near_sdk::collections::UnorderedSet;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::json_types::U128;
 use near_sdk::{
-    env, near_bindgen, AccountId, Balance, BorshStorageKey, PanicOnDefault, PromiseResult, serde_json, assert_one_yocto
+    env, near_bindgen, AccountId, Balance, BorshStorageKey, PanicOnDefault, PromiseResult, serde_json, assert_one_yocto, Promise
 };
 use crate::utils::{ext_dex, ext_self, ext_ft, XCC_GAS, GAS_FOR_FT_TRANSFER, GAS_FOR_WITHDRAW};
 mod token_receiver;
@@ -48,6 +48,18 @@ impl Contract {
         for dex in dexs {
             self.dexs.insert(&dex);
         }
+    }
+
+    #[payable]
+    pub fn ft_deposit(&mut self, ft_account: AccountId) -> Promise {
+        assert!(env::attached_deposit() >= 1250000000000000000000, "You need attach more yocto");
+        ext_ft::ext(ft_account)
+        .with_attached_deposit(1250000000000000000000)
+        .with_static_gas(GAS_FOR_FT_TRANSFER)
+        .storage_deposit(
+            env::predecessor_account_id(),
+            true,
+        )
     }
 
     pub fn get_dexs(&self, from_index: u64, limit: u64) -> Vec<AccountId> {

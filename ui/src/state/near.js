@@ -1,7 +1,7 @@
 import * as nearAPI from 'near-api-js';
 
-export const arbitrageId = "picasarts.testnet";
-export const factoryId = "dev-1656188046462-83531633920883";
+export const arbitrageId = "dev-1657391324310-71394568081833";
+export const factoryId = "dttfactory.testnet";
 
 export const {
 	utils: {
@@ -51,6 +51,7 @@ export const initNear = () => async ({ update }) => {
 	}
 
 	await update('', { near, wallet, contractAccount, account });
+	await update('app', { mounted: true });
 };
 
 export const updateWallet = () => async ({ update, getState }) => {

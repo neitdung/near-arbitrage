@@ -2,6 +2,7 @@ import BN from "bn.js";
 import {
     parseNearAmount,
     factoryId,
+    arbitrageId
 } from "./near";
 import { transactions } from "near-api-js";
 import { loadRequiredDeposit } from "./views";
@@ -73,25 +74,17 @@ export const depositFT = async (account, seed_id) => {
     );
 };
 
-export const testSwap = async (account) => {
+export const swapAction = async (account, dex, actions, tokenIn, amountIn) => {
     let msg = JSON.stringify({
-        dex_id: "dev-1656234694287-14038558864682",
-        actions: [
-            {   
-                pool_id: 0,
-                token_in: "dtt.dev-1656188046462-83531633920883",
-                token_out: "dtt1.dev-1656188046462-83531633920883",
-                amount_in: "1000",
-                min_amount_out: "0",
-            },
-        ]
+        dex_id: dex,
+        actions: actions
     });
     await account.functionCall(
-        "dtt.dev-1656188046462-83531633920883",
+        tokenIn,
         "ft_transfer_call",
         Buffer.from(JSON.stringify({
-            receiver_id: "dev-1657391324310-71394568081833",
-            amount: "1000",
+            receiver_id: arbitrageId,
+            amount: amountIn.toString(),
             msg: msg
         })),
         300000000000000,

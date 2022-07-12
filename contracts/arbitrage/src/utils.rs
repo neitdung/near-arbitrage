@@ -1,5 +1,6 @@
 use near_sdk::{ext_contract, Gas, AccountId, Promise};
 use near_sdk::json_types::U128;
+use near_contract_standards::storage_management::StorageBalance;
 use crate::Action;
 pub const GAS_FOR_FT_TRANSFER: Gas = Gas(5_000_000_000_000);
 pub const GAS_FOR_WITHDRAW: Gas = Gas(50_000_000_000_000);
@@ -15,6 +16,7 @@ pub trait FungibleToken {
         memo: Option<String>,
         msg: String,
     ) -> U128;
+    fn storage_deposit(account_id: AccountId, registration_only: bool) -> StorageBalance;
 }
 
 #[ext_contract(ext_dex)]
