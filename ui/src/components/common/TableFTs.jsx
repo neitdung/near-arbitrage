@@ -11,7 +11,7 @@ import {
     Image,
     Button
 } from '@chakra-ui/react';
-import { faucetFT } from "src/state/actions";
+import { faucetFT, depositFT } from "src/state/actions";
 import { factoryId } from "src/state/near";
 export default function TableFTs({ data, account }) {
     const faucet = (seed) => {
@@ -21,7 +21,13 @@ export default function TableFTs({ data, account }) {
             alert("Please login first");
         }
     }
-
+    const deposit = (seed) => {
+        if (account) {
+            depositFT(account, seed);
+        } else {
+            alert("Please login first");
+        }
+    }
     return (
         <TableContainer border={'1px solid'} w={'full'} maxW={'6xl'}>
             <Table variant='striped' colorScheme='teal'>
@@ -49,7 +55,7 @@ export default function TableFTs({ data, account }) {
                             <Td>{row.metadata.name}</Td>
                             <Td>{row.balance_of}</Td>
                             <Td isNumeric>{row.total_supply}</Td>
-                            <Td isNumeric>{row.can_faucet && <Button onClick={() => faucet(row.metadata.symbol.toLowerCase()+'.'+factoryId)}>Faucet</Button>}</Td>
+                            <Td isNumeric>{row.can_faucet ? <Button onClick={() => faucet(row.metadata.symbol.toLowerCase() + '.' + factoryId)}>Faucet</Button> : <Button onClick={() => deposit(row.metadata.symbol.toLowerCase() + '.' + factoryId)}>Deposit</Button>}</Td>
                         </Tr>
                     ))}
                 </Tbody>

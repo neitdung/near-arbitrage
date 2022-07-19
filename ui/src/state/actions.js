@@ -79,15 +79,31 @@ export const swapAction = async (account, dex, actions, tokenIn, amountIn) => {
         dex_id: dex,
         actions: actions
     });
-    await account.functionCall(
-        tokenIn,
-        "ft_transfer_call",
-        Buffer.from(JSON.stringify({
-            receiver_id: arbitrageId,
-            amount: amountIn.toString(),
-            msg: msg
-        })),
-        300000000000000,
-        1
-    );
+    let tokenOut = actions[actions.length - 1].token_out;
+    account
+        .viewFunction(tokenOut, "storage_balance_of", {
+            account_id: account.accountId,
+        }).then(async res => {
+            if (!res) {
+                await account.functionCall(
+                    tokenOut,
+                    "storage_deposit",
+                    {},
+                    200000000000000,
+                    parseNearAmount("0.1250001")
+                );
+            } else {
+                await account.functionCall(
+                    tokenIn,
+                    "ft_transfer_call",
+                    Buffer.from(JSON.stringify({
+                        receiver_id: arbitrageId,
+                        amount: amountIn.toString(),
+                        msg: msg
+                    })),
+                    300000000000000,
+                    1
+                );
+            }
+        })
 }

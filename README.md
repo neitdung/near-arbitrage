@@ -21,7 +21,7 @@ near call $TOKEN1 faucet --account-id $FACTORY_ID
 near dev-deploy res/ref_exchange_release.wasm
 CONTRACT_ID=dev-1656234694287-14038558864682
 USER_ID=dev-1656188046462-83531633920883
-near call $CONTRACT_ID new "{\"owner_id\": \"$USER_ID\", \"exchange_fee\": 0, \"referral_fee\": 0}" --accountId $CONTRACT_ID
+near call $DEX1 new "{\"owner_id\": \"$USER_ID\", \"exchange_fee\": 0, \"referral_fee\": 0}" --accountId $DEX1 && near call $DEX2 new "{\"owner_id\": \"$USER_ID\", \"exchange_fee\": 0, \"referral_fee\": 0}" --accountId $DEX2 && near call $DEX3 new "{\"owner_id\": \"$USER_ID\", \"exchange_fee\": 0, \"referral_fee\": 0}" --accountId $DEX3 && near call $DEX4 new "{\"owner_id\": \"$USER_ID\", \"exchange_fee\": 0, \"referral_fee\": 0}" --accountId $DEX4 && near call $DEX5 new "{\"owner_id\": \"$USER_ID\", \"exchange_fee\": 0, \"referral_fee\": 0}" --accountId $DEX5
 
 near call $CONTRACT_ID extend_whitelisted_tokens "{\"tokens\": [\"$TOKEN3\", \"$TOKEN4\", \"$TOKEN5\"]}" --accountId $CONTRACT_ID --depositYocto 1
 near call $CONTRACT_ID storage_deposit --accountId $USER_ID --deposit 1
@@ -41,7 +41,7 @@ near call $CONTRACT_ID add_liquidity '{"pool_id": 6, "amounts": ["1000000", "140
 near dev-deploy res/arbitrage.wasm
 ARBITRAGE_ID=dev-1657604972480-41950724296317
 near call $ARBITRAGE_ID new --account-id $ARBITRAGE_ID
-near call $ARBITRAGE_ID add_dexs "{\"dexs\": [\"dev-1656234694287-14038558864682\"]}" --account-id $ARBITRAGE_ID --depositYocto 1
+near call $ARBITRAGE_ID add_dexs "{\"dexs\": [\"$DEX1\", \"$DEX2\", \"$DEX3\", \"$DEX4\", \"$DEX5\"]}" --account-id $ARBITRAGE_ID --depositYocto 1
 near call $TOKEN2 storage_deposit --account-id $ARBITRAGE_ID --deposit 0.25 && near call $TOKEN5 storage_deposit --account-id $ARBITRAGE_ID --deposit 0.25 && near call $TOKEN1 faucet --account-id $ARBITRAGE_ID && near call $TOKEN5 faucet --account-id $ARBITRAGE_ID && near call $CONTRACT_ID storage_deposit --account-id $ARBITRAGE_ID --deposit 1 && near call $TOKEN1 ft_transfer_call "{\"receiver_id\": \"$CONTRACT_ID\", \"amount\": \"100000\", \"msg\": \"\"}" --accountId $ARBITRAGE_ID --depositYocto 1 --gas 200000000000000 && near call $TOKEN5 ft_transfer_call "{\"receiver_id\": \"$CONTRACT_ID\", \"amount\": \"100000\", \"msg\": \"\"}" --accountId $ARBITRAGE_ID --depositYocto 1 --gas 200000000000000
 
 near call $TOKEN1 ft_transfer_call "{\"receiver_id\": \"$ARBITRAGE_ID\", \"amount\": \"1000\", \"msg\": \"{\"dex_id\":\"$CONTRACT_ID\", \"actions\": [{\"pool_id\": 0, \"token_in\": \"$TOKEN1\", \"amount_in\": \"1000\", \"token_out\": \"$TOKEN2\", \"min_amount_out\": \"1\"}]}\"}" --accountId $USER_ID --depositYocto 1 --gas 300000000000000

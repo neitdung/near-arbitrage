@@ -63,14 +63,30 @@ export default function Index() {
                 alert("can not swap");
                 setTokenOut("");
             } else {
-                let poolId1 = tokenMatrix[steps[0]][steps[1]][0];
-                let poolId2 = tokenMatrix[steps[steps.length-2]][steps[steps.length-1]][0];
-                let totalIn = pools.list[poolId1].token_account_ids[0] == tokenIn ? pools.list[poolId1].amounts[0] : pools.list[poolId1].amounts[1];
-                let totalOut = pools.list[poolId2].token_account_ids[0] == tokenOut ? pools.list[poolId2].amounts[0] : pools.list[poolId2].amounts[1];
-                const totalK = totalIn * totalOut;
-                const changeX = parseInt(totalIn) + parseInt(amountIn);                
-                let aOut = totalOut - totalK / changeX;
-                setAmountOut(aOut);
+                let aIn = amountIn;
+                let poolId = tokenMatrix[steps[0]][steps[1]][0];
+                let totalIn1 = pools.list[poolId].token_account_ids[0] == tokenIn ? pools.list[poolId].amounts[0] : pools.list[poolId].amounts[1];
+                let totalOut1 = pools.list[poolId].token_account_ids[0] == tokenOut ? pools.list[poolId].amounts[0] : pools.list[poolId].amounts[1];
+                let totalK1 = totalIn1 * totalOut1;
+                let changeX1 = parseInt(totalIn1) + parseInt(aIn);
+                if (changeX1 != 0) {
+                    aIn = totalOut1 - totalK1 / changeX1;
+                } else {
+                    aIn = 0;
+                }
+                for (let i = 1; i < steps.length-1; i++) {
+                    let poolId = tokenMatrix[steps[i]][steps[i + 1]][0];
+                    let totalIn = pools.list[poolId].token_account_ids[0] == steps[i] ? pools.list[poolId].amounts[0] : pools.list[poolId].amounts[1];
+                    let totalOut = pools.list[poolId].token_account_ids[0] == steps[i+1] ? pools.list[poolId].amounts[0] : pools.list[poolId].amounts[1];
+                    let totalK = totalIn * totalOut;
+                    let changeX = parseInt(totalIn) + parseInt(aIn);
+                    if (changeX == 0) {
+                        setAmountOut(0);
+                        break;
+                    }
+                    aIn = totalOut - totalK / changeX;
+                }
+                setAmountOut(aIn);
             }
         }
     }, [tokenIn, tokenOut, amountIn])
@@ -117,14 +133,18 @@ export default function Index() {
                         min_amount_out: "0",
                     })
                 }
-
-                swapAction(account, dex, actions, tokenIn, amountIn);
+                
+                if(amountIn > bIn) {
+                    alert("Not enough balance");
+                } else {
+                    swapAction(account, dex, actions, tokenIn, amountIn);
+                }
             }
         }
     }
     return (
         <Center>
-            <Box bg="white" p={6} border={'1px solid'} w={'2xl'}>
+            <Box bg="white" p={6} border={'1px solid'} w={'3xl'}>
                 <VStack spacing={4} align="flex-start">
                     <FormControl>
                         <FormLabel>Dex</FormLabel>
