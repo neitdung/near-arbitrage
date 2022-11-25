@@ -72,18 +72,6 @@ export default function Index() {
 
     return (
         <VStack gap={20}>
-            <HStack gap={10}>
-                <NextLink href={"/factory/my-tokens"} as={"/factory"}>
-                    <Button>
-                        View my tokens
-                    </Button>
-                </NextLink>
-                <NextLink href={"/factory/create"} as={"/factory/create"}>
-                    <Button >
-                        Create new token
-                    </Button>
-                </NextLink>
-            </HStack>
             <TableFTs data={data} account={account}/>
         </VStack>
     )

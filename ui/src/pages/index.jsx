@@ -10,27 +10,42 @@ import {
     NumberInput,
     VStack,
     Select,
-    Flex
+    Flex,
+    Table,
+    Thead,
+    Tr,
+    Th,
+    Td,
+    TableCaption,
+    TableContainer,
+    Tbody,
+    Avatar,
+    HStack,
+    Text
 } from "@chakra-ui/react";
-import { swapAction, testSwap } from 'src/state/actions';
+import { swapAction } from 'src/state/actions';
 import { appStore, onAppMount, mountDexs, mountPools, getSwap, getSteps } from 'src/state/app';
-import { loadBalance, loadFTMeta } from 'src/state/views';
-
+import { loadBalance, loadFTMeta, loadPools } from 'src/state/views';
+import { ethers, BigNumber } from 'ethers';
+import { ArrowRightIcon } from '@chakra-ui/icons';
 export default function Index() {
     const { state, dispatch } = useContext(appStore);
-    const { app, wallet, account, dexs, tokenMatrix, contractAccount, tokens, pools } = state;
+    const { app, account, dexs, tokenMatrix, contractAccount, tokens, pools } = state;
     const onMount = () => {
         dispatch(onAppMount());
     };
 
     const [dex, setDex] = useState("");
     const [tokenIn, setTokenIn] = useState("");
-    const [bIn, setbIn] =useState(0);
+    const [bIn, setBIn] = useState(0);
     const [bOut, setBOut] = useState(0);
     const [amountIn, setAmountIn] = useState(0);
     const [tokenOut, setTokenOut] = useState("");
     const [amountOut, setAmountOut] = useState(0);
     const [metadatas, setMetadatas] = useState({});
+    const [dexPools, setDexPools] = useState([]);
+    const [swapSteps, setSwapSteps] = useState([]);
+
     useEffect(onMount, []);
     useEffect(() => {
         if (app.mounted) {
@@ -57,53 +72,67 @@ export default function Index() {
     }, [tokens.mounted])
 
     useEffect(() => {
-        if(tokenIn && tokenOut && amountIn) {
+        if (tokenIn && tokenOut && amountIn) {
             let steps = getSteps(tokenIn, tokenOut, tokenMatrix);
+            setSwapSteps(steps);
             if (!steps) {
                 alert("can not swap");
                 setTokenOut("");
             } else {
-                let aIn = amountIn;
+                let bigZero = BigNumber.from("0");
+                let aIn = ethers.utils.parseUnits(amountIn, metadatas[tokenIn].decimals);
                 let poolId = tokenMatrix[steps[0]][steps[1]][0];
                 let totalIn1 = pools.list[poolId].token_account_ids[0] == tokenIn ? pools.list[poolId].amounts[0] : pools.list[poolId].amounts[1];
                 let totalOut1 = pools.list[poolId].token_account_ids[0] == tokenOut ? pools.list[poolId].amounts[0] : pools.list[poolId].amounts[1];
-                let totalK1 = totalIn1 * totalOut1;
-                let changeX1 = parseInt(totalIn1) + parseInt(aIn);
-                if (changeX1 != 0) {
-                    aIn = totalOut1 - totalK1 / changeX1;
+                let totalK1 = BigNumber.from(totalIn1).mul(BigNumber.from(totalOut1));
+                let changeX1 = BigNumber.from(totalIn1).add(aIn);
+                if (changeX1.gt(bigZero)) {
+                    aIn = BigNumber.from(totalOut1).sub(totalK1.div(changeX1));
                 } else {
-                    aIn = 0;
+                    aIn = BigNumber.from("0");
                 }
-                for (let i = 1; i < steps.length-1; i++) {
+                for (let i = 1; i < steps.length - 1; i++) {
                     let poolId = tokenMatrix[steps[i]][steps[i + 1]][0];
                     let totalIn = pools.list[poolId].token_account_ids[0] == steps[i] ? pools.list[poolId].amounts[0] : pools.list[poolId].amounts[1];
-                    let totalOut = pools.list[poolId].token_account_ids[0] == steps[i+1] ? pools.list[poolId].amounts[0] : pools.list[poolId].amounts[1];
-                    let totalK = totalIn * totalOut;
-                    let changeX = parseInt(totalIn) + parseInt(aIn);
-                    if (changeX == 0) {
+                    let totalOut = pools.list[poolId].token_account_ids[0] == steps[i + 1] ? pools.list[poolId].amounts[0] : pools.list[poolId].amounts[1];
+                    let totalK = BigNumber.from(totalIn).mul(BigNumber.from(totalOut));
+                    let changeX = BigNumber.from(totalIn).add(aIn);
+                    if (changeX.eq(bigZero)) {
                         setAmountOut(0);
                         break;
                     }
-                    aIn = totalOut - totalK / changeX;
+                    aIn = BigNumber.from(totalOut).sub(totalK.div(changeX));
                 }
-                setAmountOut(aIn);
+                setAmountOut(ethers.utils.formatUnits(aIn, metadatas[tokenOut].decimals));
             }
+        } else if (tokenIn && tokenOut) {
+            let steps = getSteps(tokenIn, tokenOut, tokenMatrix);
+            setSwapSteps(steps);
         }
     }, [tokenIn, tokenOut, amountIn])
 
     useEffect(() => {
-        if(tokenIn) {
+        if (tokenIn) {
             loadBalance(account, tokenIn)
-            .then(res => setbIn(parseInt(res)))
+                .then(res => setBIn(res))
         }
     }, [tokenIn])
 
     useEffect(() => {
         if (tokenOut) {
             loadBalance(account, tokenOut)
-                .then(res => setBOut(parseInt(res)))
+                .then(res => setBOut(res))
         }
     }, [tokenOut])
+
+    useEffect(() => {
+        if (dex) {
+            loadPools(account, dex)
+                .then(res => {
+                    setDexPools(res)
+                })
+        }
+    }, [dex])
     const loadMetadatas = async () => {
         let metas = await loadFTMeta(contractAccount, tokens.list);
         let metaObj = {};
@@ -118,32 +147,33 @@ export default function Index() {
             if (!steps) {
                 alert("can not swap");
             } else {
+                let bigAmount = ethers.utils.parseUnits(amountIn, metadatas[tokenIn].decimals).toString();
                 let actions = [{
                     pool_id: tokenMatrix[tokenIn][steps[1]][0],
                     token_in: tokenIn,
                     token_out: steps[1],
-                    amount_in: amountIn.toString(),
+                    amount_in: bigAmount,
                     min_amount_out: "0",
                 }];
-                for (let i =1; i<steps.length -1; i++) {
+                for (let i = 1; i < steps.length - 1; i++) {
                     actions.push({
-                        pool_id: tokenMatrix[steps[i]][steps[i+1]][0],
+                        pool_id: tokenMatrix[steps[i]][steps[i + 1]][0],
                         token_in: steps[i],
-                        token_out: steps[i+1],
+                        token_out: steps[i + 1],
                         min_amount_out: "0",
                     })
                 }
-                
-                if(amountIn > bIn) {
+
+                if (amountIn > bIn) {
                     alert("Not enough balance");
                 } else {
-                    swapAction(account, dex, actions, tokenIn, amountIn);
+                    swapAction(account, dex, actions, tokenIn, bigAmount);
                 }
             }
         }
     }
     return (
-        <Center>
+        <VStack gap={10}>
             <Box bg="white" p={6} border={'1px solid'} w={'3xl'}>
                 <VStack spacing={4} align="flex-start">
                     <FormControl>
@@ -189,8 +219,15 @@ export default function Index() {
                             <FormLabel>Symbol</FormLabel>
                             {metadatas[tokenOut]?.icon ? <Image h={"36px"} src={metadatas[tokenOut]?.icon} /> : <Image h={"36px"} src={`https://picsum.photos/30/?random=2`} />}
                         </FormControl>
-
                     </Flex>
+                    <Center w={'full'}>
+                        {(swapSteps.length) ? swapSteps.map((item, index) =>
+                            <HStack gap={1} pr={4}>
+                                <Avatar size='sm' src={metadatas[item]?.icon} />
+                                {(index !== swapSteps.length - 1) && <ArrowRightIcon color='teal' />}
+                            </HStack>
+                        ) : null}
+                    </Center>
                     <Flex w={'full'}>
                         <Button type="submit"
                             color={'white'}
@@ -206,6 +243,44 @@ export default function Index() {
                     </Flex>
                 </VStack>
             </Box>
-        </Center>
+            <TableContainer border={'1px solid'} w={'full'} maxW={'6xl'}>
+                <Table variant='striped' colorScheme='teal'>
+                    <TableCaption>Pool Info</TableCaption>
+                    <Thead>
+                        <Tr>
+                            <Th>#</Th>
+                            <Th>Pair</Th>
+                            <Th>TVL</Th>
+                        </Tr>
+                    </Thead>
+                    <Tbody>
+                        {dexPools.length && dexPools.map((row, index) => (
+                            <Tr
+                                key={`pool-${index}-${dex}`}
+                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                            >
+                                <Td>{index}</Td>
+                                <Td>
+                                    <HStack>
+                                        <Avatar size='sm' src={metadatas[row.token_account_ids[0]]?.icon} />
+                                        <Avatar size='sm' src={metadatas[row.token_account_ids[1]]?.icon} />
+                                        <Text pl={2} fontWeight={600}>{metadatas[row.token_account_ids[0]]?.symbol} - {metadatas[row.token_account_ids[1]]?.symbol}</Text>
+                                    </HStack>
+                                </Td>
+                                <Td>
+                                    <HStack>
+                                        <Text>{parseFloat(ethers.utils.formatUnits(row?.amounts[0], metadatas[row.token_account_ids[0]]?.decimals)).toFixed(2)}</Text>
+                                        <Avatar size='xs' src={metadatas[row.token_account_ids[0]]?.icon} />
+                                        <Text>-</Text>
+                                        <Text>{parseFloat(ethers.utils.formatUnits(row?.amounts[1], metadatas[row.token_account_ids[1]]?.decimals)).toFixed(2)}</Text>
+                                        <Avatar size='xs' src={metadatas[row.token_account_ids[1]]?.icon} />
+                                    </HStack>
+                                </Td>
+                            </Tr>
+                        ))}
+                    </Tbody>
+                </Table>
+            </TableContainer>
+        </VStack>
     );
 }

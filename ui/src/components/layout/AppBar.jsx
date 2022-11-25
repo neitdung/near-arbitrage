@@ -19,7 +19,6 @@ import {
 import { appStore, onAppMount } from 'src/state/app';
 import NextLink from 'next/link';
 import { Icon } from '@chakra-ui/react';
-
 const WalletIcon = (props) => {
     return (
         <Icon viewBox='0 0 24 24' {...props}>
@@ -110,7 +109,6 @@ export default function AppBar() {
                             <PopoverBody>
                                 <VStack>
                                     <Button colorScheme='purple' w={'full'} onClick={copyAddress}>Copy Address</Button>
-                                        <NextLink href={'/factory'} passHref><Button colorScheme='teal' w={'full'}>Factory</Button></NextLink>
                                     <Button colorScheme='red' w={'full'} onClick={handleLogout}>Logout</Button>
                                 </VStack>
                             </PopoverBody>

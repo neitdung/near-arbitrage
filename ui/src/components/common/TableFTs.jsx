@@ -9,10 +9,12 @@ import {
     TableContainer,
     Tbody,
     Image,
-    Button
+    Button,
+    Avatar
 } from '@chakra-ui/react';
 import { faucetFT, depositFT } from "src/state/actions";
 import { factoryId } from "src/state/near";
+import { ethers } from "ethers";
 export default function TableFTs({ data, account }) {
     const faucet = (seed) => {
         if(account) {
@@ -49,12 +51,13 @@ export default function TableFTs({ data, account }) {
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <Td component="th" scope="row">
-                                {row.metadata.icon ? <Image height={50} src={row.metadata.icon} /> : <img src={`https://picsum.photos/50/?random=${index}`} />}
+                                {row.metadata.icon ? <Avatar size='sm' src={row.metadata.icon} /> : <img src={`https://picsum.photos/50/?random=${index}`} />}
                             </Td>
                             <Td>{row.metadata.symbol}</Td>
                             <Td>{row.metadata.name}</Td>
-                            <Td>{row.balance_of}</Td>
-                            <Td isNumeric>{row.total_supply}</Td>
+                            <Td>{ethers.utils.formatUnits(ethers.BigNumber.from(row.balance_of), row.metadata.decimals)}</Td>
+                            {/* <Td isNumeric>{row.total_supply}</Td> */}
+                            <Td isNumeric>{ethers.utils.formatUnits(ethers.BigNumber.from(row.total_supply), row.metadata.decimals)}</Td>
                             <Td isNumeric>{row.can_faucet ? <Button onClick={() => faucet(row.metadata.symbol.toLowerCase() + '.' + factoryId)}>Faucet</Button> : <Button onClick={() => deposit(row.metadata.symbol.toLowerCase() + '.' + factoryId)}>Deposit</Button>}</Td>
                         </Tr>
                     ))}

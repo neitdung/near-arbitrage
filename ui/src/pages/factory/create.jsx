@@ -18,6 +18,7 @@ import {
 import NotLoggedIn from "src/components/common/NotLoggedIn";
 import { createNewFT } from 'src/state/actions';
 import minifySvg from 'mini-svg-data-uri';
+import { ethers } from 'ethers';
 
 const Create = () => {
     const { state, dispatch } = useContext(appStore);
@@ -40,13 +41,14 @@ const Create = () => {
                 name: '',
                 icon: '',
                 symbol: '',
-                decimals: 0
+                decimals: 18
             }
         },
         onSubmit: values => { submitFT(values) }
     });
     const submitFT = values => {
-        createNewFT(account, values);
+        let bigTotalSupply = ethers.utils.parseUnits(values.total_supply, values.metadata.decimals);
+        createNewFT(account, {...values, total_supply: bigTotalSupply.toString()});
     }
     const onDrop = useCallback(acceptedFiles => {
         let file = acceptedFiles[0];

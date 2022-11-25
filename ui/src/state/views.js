@@ -1,3 +1,4 @@
+import { BigNumber, ethers } from "ethers";
 import { factoryId, arbitrageId } from "../state/near";
 
 export const getDexs = async (
@@ -106,8 +107,15 @@ export const loadFTMeta = async (contractAccount, tokens) => {
 
 export const loadBalance = async (account, tokenId) => {
     let balance = await account.viewFunction(tokenId, 'ft_balance_of', {account_id: account.accountId});
-    
-    return balance;
+    let {decimals} = await account.viewFunction(tokenId, 'ft_metadata', { account_id: account.accountId });
+
+    return parseFloat(ethers.utils.formatUnits(BigNumber.from(balance), decimals)).toFixed(4);
+};
+
+export const loadPools = async (account, dex) => {
+    let pools = await account.viewFunction(dex, 'get_pools', { from_index: 0, limit:10 });
+
+    return pools;
 };
 
 

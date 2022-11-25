@@ -9,6 +9,7 @@ import { loadRequiredDeposit } from "./views";
 
 export const createNewFT = async (account, args) => {
     const amount = await loadRequiredDeposit(account, account.accountId, args);
+    console.log(args)
     let actions = [
         transactions.functionCall(
             "create_token",
@@ -42,7 +43,7 @@ export const faucetFT = async (account, seed_id) => {
             let actions = [
                 transactions.functionCall(
                     "faucet",
-                    {},
+                    { receiver_id: account.accountId },
                     10000000000000,
                     "1"
                 ),

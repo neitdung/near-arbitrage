@@ -7,8 +7,8 @@ import AppBar from "src/components/layout/AppBar";
 import favicon from "../public/static/favicon.ico";
 const clientSideEmotionCache = createEmotionCache();
 import { AppProvider } from '../state/app';
-import { ChakraProvider } from '@chakra-ui/react';
-
+import { Center, ChakraProvider, HStack, Button } from '@chakra-ui/react';
+import NextLink from 'next/link';
 export default function MyApp(props) {
     const [isFirstLoading, setIsFirstLoading] = useState(true);
     const [windowObj, setWindowObj] = useState(null);
@@ -33,6 +33,25 @@ export default function MyApp(props) {
                     <AppProvider>
                         <ChakraProvider>
                             <AppBar />
+                            <Center>
+                                <HStack gap={5} pb={5}>
+                                    <NextLink href={"/"} as={"/"}>
+                                        <Button colorScheme='green'>
+                                            Dex Arbitrage
+                                        </Button>
+                                    </NextLink>
+                                    <NextLink href={"/factory"} as={"/factory"}>
+                                        <Button colorScheme='teal'>
+                                            Factory Tokens
+                                        </Button>
+                                    </NextLink>
+                                    <NextLink href={"/factory/create"} as={"/factory/create"}>
+                                        <Button colorScheme='blue'>
+                                            Create Token
+                                        </Button>
+                                    </NextLink>
+                                </HStack>
+                            </Center>
                             <Component {...pageProps} />
                         </ChakraProvider>
                     </AppProvider>}

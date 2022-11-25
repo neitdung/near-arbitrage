@@ -1,7 +1,7 @@
 import * as nearAPI from 'near-api-js';
 
-export const arbitrageId = "dttarbitrage.testnet";
-export const factoryId = "dttfactory.testnet";
+export const arbitrageId = "hub.dexgateway.testnet";
+export const factoryId = "v4.ftfactory.testnet";
 
 export const {
 	utils: {

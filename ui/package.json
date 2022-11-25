@@ -17,7 +17,7 @@
     "@emotion/react": "latest",
     "@emotion/server": "latest",
     "@emotion/styled": "latest",
-    "bn": "^1.0.5",
+    "ethers": "^5.7.2",
     "formik": "^2.2.9",
     "framer-motion": "^6.3.15",
     "googleapis": "^95.0.0",
