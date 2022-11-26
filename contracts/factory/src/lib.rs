@@ -11,8 +11,8 @@ use near_sdk::{
 
 near_sdk::setup_alloc!();
 
-const FT_CODE: &[u8] = include_bytes!("../res/ft.wasm");
-const FT_FAUCET_CODE: &[u8] = include_bytes!("../res/ft_faucet.wasm");
+const FT_CODE: &[u8] = include_bytes!("../ft-builds/ft.wasm");
+const FT_FAUCET_CODE: &[u8] = include_bytes!("../ft-builds/ft_faucet.wasm");
 
 const EXTRA_BYTES: usize = 10000;
 const GAS: Gas = 100_000_000_000_000; //100000000000000

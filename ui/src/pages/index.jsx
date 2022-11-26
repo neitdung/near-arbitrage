@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
     Box,
     Button,
@@ -21,7 +21,12 @@ import {
     Tbody,
     Avatar,
     HStack,
-    Text
+    Text,
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+    PopoverBody,
+    useDisclosure,
 } from "@chakra-ui/react";
 import { swapAction } from 'src/state/actions';
 import { appStore, onAppMount, mountDexs, mountPools, getSwap, getSteps } from 'src/state/app';
@@ -45,6 +50,8 @@ export default function Index() {
     const [metadatas, setMetadatas] = useState({});
     const [dexPools, setDexPools] = useState([]);
     const [swapSteps, setSwapSteps] = useState([]);
+    const { isOpen: openTokenIn, onToggle: toggleTokenIn, onClose: closeTokenIn } = useDisclosure();
+    const { isOpen: openTokenOut, onToggle: toggleTokenOut, onClose: closeTokenOut } = useDisclosure();
 
     useEffect(onMount, []);
     useEffect(() => {
@@ -164,7 +171,8 @@ export default function Index() {
                     })
                 }
 
-                if (amountIn > bIn) {
+                if (parseFloat(amountIn) > bIn) {
+                    console.log(amountIn, bIn)
                     alert("Not enough balance");
                 } else {
                     swapAction(account, dex, actions, tokenIn, bigAmount);
@@ -172,6 +180,16 @@ export default function Index() {
             }
         }
     }
+
+    const handleSelectTokenIn = useCallback(value => {
+        setTokenIn(value);
+        closeTokenIn();
+    }, []);
+
+    const handleSelectTokenOut = useCallback(value => {
+        setTokenOut(value);
+        closeTokenOut();
+    }, []);
     return (
         <VStack gap={10}>
             <Box bg="white" p={6} border={'1px solid'} w={'3xl'}>
@@ -184,40 +202,101 @@ export default function Index() {
                     </FormControl>
                     <Flex justify={'space-between'} w={'full'} gap={12}>
                         <FormControl>
-                            <FormLabel>Amount In (Balance: {bIn})</FormLabel>
+                            <FormLabel>Amount In</FormLabel>
                             <NumberInput value={amountIn}><NumberInputField onChange={(e) => setAmountIn(e.target.value)} /></NumberInput>
                         </FormControl>
                         <FormControl>
                             <FormLabel>Token In</FormLabel>
-                            <Select value={tokenIn} onChange={(e) => setTokenIn(e.target.value)} placeholder="Select token">
-                                {(tokens.mounted) && tokens.list.filter(fItem => fItem !== tokenOut)
-                                    .map((item) =>
-                                        <option key={`tin${item}`} value={item}> {metadatas[item]?.name}</option>
-                                    )}
-                            </Select>
+                            <Popover
+                                matchWidth
+                                isOpen={openTokenIn}
+                                onClose={closeTokenIn}
+                            >
+                                <PopoverTrigger w='full'>
+                                    <Button
+                                        w='full'
+                                        justifyContent='left'   
+                                        aria-label='Options token in'
+                                        variant='outline'
+                                        onClick={toggleTokenIn}
+                                        leftIcon={<Avatar size='xs' src={metadatas[tokenIn]?.icon} name={metadatas[tokenIn]?.symbol} />}
+                                    >
+                                        <Text>{metadatas[tokenIn]?.symbol}</Text>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent w='full'>
+                                    <PopoverBody w='full'>
+                                        <VStack w='full'>
+                                            {(tokens.mounted) && tokens.list.filter(fItem => fItem !== tokenOut)
+                                                .map((item, index) =>
+                                                    <Button
+                                                        w='full'
+                                                        justifyContent='left'
+                                                        key={`token-option-in-${index}`}
+                                                        leftIcon={<Avatar size='xs' src={metadatas[item]?.icon} name={metadatas[item]?.name} />}
+                                                        onClick={() => { handleSelectTokenIn(item) }}
+                                                    >
+                                                        <Text>{metadatas[item]?.symbol}</Text>
+                                                    </Button>
+                                                )}
+                                        </VStack>
+                                    </PopoverBody>
+                                </PopoverContent>
+                            </Popover>
                         </FormControl>
                         <FormControl w={'min'}>
-                            <FormLabel>Symbol</FormLabel>
-                            {metadatas[tokenIn]?.icon ? <Image height={"36px"} src={metadatas[tokenIn]?.icon} /> : <Image h={"36px"} src={`https://picsum.photos/30/?random=1`} />}
+                            <FormLabel>Balance</FormLabel>
+                            {bIn}
                         </FormControl>
                     </Flex>
                     <Flex justify={'space-between'} w={'full'} gap={12}>
                         <FormControl>
-                            <FormLabel>Amount Out (Balance: {bOut})</FormLabel>
+                            <FormLabel>Amount Out</FormLabel>
                             <NumberInput value={amountOut} disabled ><NumberInputField onChange={(e) => setAmountOut(e.target.value)} /></NumberInput>
                         </FormControl>
-                        <FormControl>
+                        <FormControl w='full'>
                             <FormLabel>Token Out</FormLabel>
-                            <Select value={tokenOut} onChange={(e) => setTokenOut(e.target.value)} placeholder="Select token">
-                                {(tokens.mounted) && tokens.list.filter(fItem => fItem !== tokenIn)
-                                    .map(item =>
-                                        <option key={`tout${item}`} value={item}>{metadatas[item]?.name}</option>
-                                    )}
-                            </Select>
+                            <Popover
+                                matchWidth
+                                w='full'
+                                isOpen={openTokenOut}
+                                onClose={closeTokenOut}
+                            >
+                                <PopoverTrigger w='full'>
+                                    <Button
+                                        w='full'
+                                        justifyContent='left'
+                                        aria-label='Options token in'
+                                        variant='outline'
+                                        onClick={toggleTokenOut}
+                                        leftIcon={<Avatar size='xs' src={metadatas[tokenOut]?.icon} name={metadatas[tokenOut]?.symbol} />}
+                                    >
+                                        <Text>{metadatas[tokenOut]?.symbol}</Text>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent w='full'>
+                                    <PopoverBody>
+                                        <VStack w='full'>
+                                            {(tokens.mounted) && tokens.list.filter(fItem => fItem !== tokenIn)
+                                                .map((item, index) =>
+                                                    <Button
+                                                        w='full'
+                                                        justifyContent='left'
+                                                        key={`token-option-in-${index}`}
+                                                        leftIcon={<Avatar size='xs' src={metadatas[item]?.icon} name={metadatas[item]?.name} />}
+                                                        onClick={() => { handleSelectTokenOut(item) }}
+                                                    >
+                                                        <Text>{metadatas[item]?.symbol}</Text>
+                                                    </Button>
+                                                )}
+                                        </VStack>
+                                    </PopoverBody>
+                                </PopoverContent>
+                            </Popover>
                         </FormControl>
                         <FormControl w={'min'}>
-                            <FormLabel>Symbol</FormLabel>
-                            {metadatas[tokenOut]?.icon ? <Image h={"36px"} src={metadatas[tokenOut]?.icon} /> : <Image h={"36px"} src={`https://picsum.photos/30/?random=2`} />}
+                            <FormLabel>Balance</FormLabel>
+                            {bOut}
                         </FormControl>
                     </Flex>
                     <Center w={'full'}>
