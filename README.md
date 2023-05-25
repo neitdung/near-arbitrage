@@ -2,7 +2,7 @@
 
 # Intro
 
-NEARbitrage is an arbitrage on NEAR Protocol. I use [ref.finance exchange contract](https://github.com/ref-finance/ref-contracts/blob/main/releases/ref_exchange_release.wasm) for base dex in arbitrage. With this project, you can swap through multiple dex on NEAR. It will increase your gas fee but your storage fee is too small.
+NEARbitrage is an arbitrage on NEAR Protocol. I use [ref.finance exchange contract](https://github.com/ref-finance/ref-contracts/blob/main/releases/ref_exchange_release.wasm) for base dex in arbitrage. With this project, you can swap through multiple dex on NEAR. It will increase your gas fee but your storage fee is too small. On frontend, currently I use simple routing for swap by BFS.
 
 # App flow
 
